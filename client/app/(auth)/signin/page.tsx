@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 
 const page = () => {
     const router = useRouter();
-    const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
@@ -16,20 +15,20 @@ const page = () => {
         setError("");
 
         try {
-            const res = await fetch("http://127.0.0.1:8000/api/register", {
+            const res = await fetch("http://localhost:8000/api/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name, email, password })
+                body: JSON.stringify({ email, password })
             });
-
 
             const data = await res.json();
 
             if (res.ok) {
-                // Redirect to Sign In
-                router.push("/signin");
+                // Store token (optional) and redirect to home page
+                localStorage.setItem("token", data.token);
+                router.push("/dashboard");
             } else {
-                setError(data.message || "Registration failed");
+                setError(data.message || "Login failed");
             }
 
         } catch (err) {
@@ -38,20 +37,19 @@ const page = () => {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-green-100">
+        <div className="min-h-screen flex items-center justify-center bg-blue-100">
             <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow w-80 space-y-4">
-                <h2 className="text-center text-xl font-bold text-green-700">Register</h2>
+                <h2 className="text-center text-xl font-bold text-blue-700">Sign In</h2>
 
                 {error && <p className="text-red-500 text-center">{error}</p>}
 
-                <input type="text" placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} className="w-full border p-2 rounded" required />
                 <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full border p-2 rounded" required />
                 <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full border p-2 rounded" required />
 
-                <button type="submit" className="w-full bg-green-600 text-white p-2 rounded">Register</button>
+                <button type="submit" className="w-full bg-blue-600 text-white p-2 rounded">Sign In</button>
 
                 <p className="text-center text-sm text-gray-500">
-                    Already have an account? <Link href="/signin" className="text-green-600 font-medium">Sign In</Link>
+                    Don’t have an account? <Link href="/register" className="text-blue-600 font-medium">Register</Link>
                 </p>
             </form>
         </div>
