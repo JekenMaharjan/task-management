@@ -8,39 +8,54 @@ use Illuminate\Support\Facades\Auth;
 
 class TaskController extends Controller
 {
-    // Get all tasks of logged-in user
+    // Get logged-in user's tasks
     public function index()
     {
-        $tasks = Task::where('user_id', Auth::id())->get();
-        return response()->json($tasks);
+        return response()->json(
+            Auth::user()->tasks()->latest()->get()
+        );
     }
 
-    // Add new task
+    // Add task
     public function store(Request $request)
     {
-        $request->validate(['title'=>'required']);
-
-        $task = Task::create([
-            'title'=>$request->title,
-            'user_id'=>Auth::id()
+        $request->validate([
+            'text' => 'required|string|max:255',
+            'priority' => 'required|in:low,medium,high',
         ]);
 
-        return response()->json($task);
+        $task = Auth::user()->tasks()->create([
+            'text' => $request->text,
+            'priority' => $request->priority,
+            'completed' => false,
+        ]);
+
+        return response()->json($task, 201);
     }
 
-    // Update task (mark complete)
+    // Toggle complete
     public function update(Request $request, $id)
     {
-        $task = Task::where('user_id', Auth::id())->findOrFail($id);
-        $task->update(['is_completed'=>$request->is_completed]);
+        $request->validate([
+            'completed' => 'required|boolean',
+        ]);
+
+        $task = Auth::user()->tasks()->findOrFail($id);
+        $task->update([
+            'completed' => $request->completed,
+        ]);
+
         return response()->json($task);
     }
 
     // Delete task
     public function destroy($id)
     {
-        $task = Task::where('user_id', Auth::id())->findOrFail($id);
+        $task = Auth::user()->tasks()->findOrFail($id);
         $task->delete();
-        return response()->json(['message'=>'Task deleted']);
+
+        return response()->json([
+            'message' => 'Task deleted successfully',
+        ]);
     }
 }
