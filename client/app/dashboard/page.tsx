@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 type Task = {
+    id: number;
     text: string;
     priority: "low" | "medium" | "high";
     completed: boolean;
@@ -18,48 +19,102 @@ const TaskManagerPage = () => {
     const [filter, setFilter] = useState<"all" | "active" | "completed">("all");
     const [loading, setLoading] = useState(true);
 
-    // Protect dashboard: check for token
+    const API_URL = "http://localhost:8000/api/tasks";
+
+    // 🔐 Load tasks from backend
     useEffect(() => {
         const token = localStorage.getItem("token");
+
         if (!token) {
             router.replace("/signin");
-        } else {
-            // Load tasks if token exists
-            const storedTasks = localStorage.getItem("tasks");
-            if (storedTasks) setTasks(JSON.parse(storedTasks));
-            setLoading(false);
+            return;
         }
-    }, []);
 
-    // Save tasks to localStorage whenever updated
-    useEffect(() => {
-        localStorage.setItem("tasks", JSON.stringify(tasks));
-    }, [tasks]);
+        fetch(API_URL, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        })
+            .then((res) => {
+                if (!res.ok) throw new Error("Unauthorized");
+                return res.json();
+            })
+            .then((data) => {
+                setTasks(data);
+                setLoading(false);
+            })
+            .catch(() => {
+                localStorage.removeItem("token");
+                router.replace("/signin");
+            });
+    }, [router]);
 
-    const addTask = () => {
+    // ➕ Add task
+    const addTask = async () => {
         if (!task.trim()) return;
-        setTasks([...tasks, { text: task, priority: priority || "low", completed: false }]);
+
+        const token = localStorage.getItem("token");
+
+        const res = await fetch(API_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+                text: task,
+                priority,
+            }),
+        });
+
+        const newTask = await res.json();
+        setTasks((prev) => [newTask, ...prev]);
+
         setTask("");
         setPriority("low");
     };
 
-    const toggleComplete = (index: number) => {
-        const updated = [...tasks];
-        updated[index].completed = !updated[index].completed;
-        setTasks(updated);
+    // ✅ Toggle complete
+    const toggleComplete = async (id: number, completed: boolean) => {
+        const token = localStorage.getItem("token");
+
+        const res = await fetch(`${API_URL}/${id}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ completed: !completed }),
+        });
+
+        const updatedTask = await res.json();
+
+        setTasks((prev) =>
+            prev.map((t) => (t.id === id ? updatedTask : t))
+        );
     };
 
-    const deleteTask = (index: number) => {
-        setTasks(tasks.filter((_, i) => i !== index));
+    // 🗑 Delete task
+    const deleteTask = async (id: number) => {
+        const token = localStorage.getItem("token");
+
+        await fetch(`${API_URL}/${id}`, {
+            method: "DELETE",
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+
+        setTasks((prev) => prev.filter((t) => t.id !== id));
     };
 
+    // 🚪 Logout
     const logout = () => {
-        // Clear all auth and session data
-        localStorage.removeItem("token"); // main auth token
-        localStorage.removeItem("tasks"); // task data
-        router.replace("/signin"); // redirect to signin
+        localStorage.removeItem("token");
+        router.replace("/signin");
     };
 
+    // 🔍 Filter tasks
     const filteredTasks = tasks.filter((t) => {
         if (filter === "active") return !t.completed;
         if (filter === "completed") return t.completed;
@@ -74,12 +129,11 @@ const TaskManagerPage = () => {
 
     const completedCount = tasks.filter((t) => t.completed).length;
 
-    // Wait until loading is done
     if (loading) return null;
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-green-500 to-blue-500 flex flex-col items-center pt-10 px-4">
-            {/* Logout Button */}
+            {/* Logout */}
             <div className="w-full max-w-xl flex justify-end mb-4">
                 <button
                     onClick={logout}
@@ -89,7 +143,7 @@ const TaskManagerPage = () => {
                 </button>
             </div>
 
-            {/* Card Container */}
+            {/* Card */}
             <div className="w-full max-w-xl bg-gray-900 text-white rounded-xl shadow-lg p-6 space-y-6">
                 {/* Header */}
                 <div className="flex justify-between items-center">
@@ -102,25 +156,25 @@ const TaskManagerPage = () => {
 
                     <button
                         onClick={addTask}
-                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-semibold"
+                        className="bg-blue-600 px-4 py-2 rounded-lg hover:bg-blue-700 font-semibold flex items-center gap-2"
                     >
                         <span className="text-xl">+</span> Add Task
                     </button>
                 </div>
 
-                {/* Input Section */}
+                {/* Input */}
                 <div className="flex gap-2">
                     <input
                         type="text"
                         placeholder="Enter task..."
                         value={task}
                         onChange={(e) => setTask(e.target.value)}
-                        className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        className="flex-1 rounded-lg px-3 py-2 text-white border border-gray-300 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
                     />
                     <select
                         value={priority}
                         onChange={(e) => setPriority(e.target.value as any)}
-                        className="border border-gray-300 rounded-lg px-2 py-2 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-400"
+                        className="rounded-lg px-2 py-2 text-white cursor-pointer border border-gray-300 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
                     >
                         <option className="text-black" value="low">Low</option>
                         <option className="text-black" value="medium">Medium</option>
@@ -128,15 +182,15 @@ const TaskManagerPage = () => {
                     </select>
                 </div>
 
-                {/* Filter Buttons */}
-                <div className="flex justify-start gap-2">
+                {/* Filters */}
+                <div className="flex gap-2">
                     {["all", "active", "completed"].map((f) => (
                         <button
                             key={f}
                             onClick={() => setFilter(f as any)}
-                            className={`px-3 py-1 rounded-lg text-sm font-medium transition ${filter === f
-                                    ? "bg-gray-500 text-gray-100"
-                                    : "bg-white text-gray-600 hover:bg-gray-200"
+                            className={`px-3 py-1 rounded-lg text-sm font-medium ${filter === f
+                                    ? "bg-gray-500 text-white"
+                                    : "bg-white text-gray-700"
                                 }`}
                         >
                             {f.charAt(0).toUpperCase() + f.slice(1)}
@@ -147,34 +201,40 @@ const TaskManagerPage = () => {
                 {/* Task List */}
                 <ul className="space-y-2">
                     {filteredTasks.length === 0 && (
-                        <p className="text-center text-gray-300">No tasks</p>
+                        <p className="text-center text-gray-400">No tasks</p>
                     )}
-                    {filteredTasks.map((t, index) => (
+
+                    {filteredTasks.map((t) => (
                         <li
-                            key={index}
+                            key={t.id}
                             className={`flex justify-between items-center bg-gray-50 px-4 py-2 rounded-lg ${priorityColors[t.priority]}`}
                         >
                             <div className="flex items-center gap-3">
                                 <input
                                     type="checkbox"
                                     checked={t.completed}
-                                    onChange={() => toggleComplete(index)}
-                                    className="w-5 h-5 cursor-pointer"
+                                    className="cursor-pointer"
+                                    onChange={() =>
+                                        toggleComplete(t.id, t.completed)
+                                    }
                                 />
                                 <span
-                                    className={`${t.completed ? "line-through text-gray-400" : "text-gray-900"}`}
+                                    className={`${t.completed
+                                            ? "line-through text-gray-400"
+                                            : "text-gray-900"
+                                        }`}
                                 >
                                     {t.text}
                                 </span>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <span className={`${t.priority === "low" ? "bg-green-400" : t.priority === "medium" ? "bg-yellow-400" : "bg-red-400"} text-xs font-semibold px-2 py-1 rounded-lg text-black`}>
-                                    {t.priority.charAt(0).toUpperCase() + t.priority.slice(1)}
-                                </span>
 
+                            <div className="flex items-center gap-2">
+                                <span className="text-xs font-semibold px-2 py-1 rounded-lg bg-gray-300 text-black">
+                                    {t.priority}
+                                </span>
                                 <button
-                                    onClick={() => deleteTask(index)}
-                                    className="text-gray-400 hover:text-red-500 transition"
+                                    onClick={() => deleteTask(t.id)}
+                                    className="text-gray-400 hover:text-red-500"
                                 >
                                     🗑️
                                 </button>
