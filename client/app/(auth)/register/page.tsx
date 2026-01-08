@@ -11,39 +11,57 @@ const RegisterPage = () => {
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [passwordConfirmation, setPasswordConfirmation] = useState("");
 
     // UI state
-    const [error, setError] = useState("");
+    const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setError("");
+        setError(null);
+
+        // Simple client-side check (traditional UX)
+        if (password !== passwordConfirmation) {
+            setError("Passwords do not match");
+            return;
+        }
+
         setLoading(true);
 
         try {
-            const res = await fetch("http://127.0.0.1:8000/api/register", {
+            const res = await fetch("http://localhost:8000/api/register", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name, email, password }),
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                },
+                body: JSON.stringify({
+                    name,
+                    email,
+                    password,
+                    password_confirmation: passwordConfirmation,
+                }),
             });
 
             const data = await res.json();
 
-            if (res.ok) {
-                // Registration successful -> redirect to sign in
-                router.push("/signin");
-            } else {
-                // Handle validation errors from Laravel
+            if (!res.ok) {
                 if (data.errors) {
                     const firstError = Object.values(data.errors)[0];
                     setError(Array.isArray(firstError) ? firstError[0] : firstError);
                 } else {
                     setError(data.message || "Registration failed");
                 }
+                return;
             }
+
+            // Success
+            router.push("/signin");
+
         } catch (err) {
-            setError("Something went wrong. Please try again.");
+            console.error(err);
+            setError("Server error. Please try again.");
         } finally {
             setLoading(false);
         }
@@ -88,10 +106,21 @@ const RegisterPage = () => {
                     required
                 />
 
+                <input
+                    type="password"
+                    placeholder="Confirm Password"
+                    value={passwordConfirmation}
+                    onChange={(e) => setPasswordConfirmation(e.target.value)}
+                    className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-green-400"
+                    required
+                />
+
                 <button
                     type="submit"
                     disabled={loading}
-                    className={`w-full p-2 rounded text-white ${loading ? "bg-green-400 cursor-not-allowed" : "bg-green-600"
+                    className={`w-full p-2 rounded text-white ${loading
+                            ? "bg-green-400 cursor-not-allowed"
+                            : "bg-green-600"
                         }`}
                 >
                     {loading ? "Registering..." : "Register"}
