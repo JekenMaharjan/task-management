@@ -3,6 +3,10 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+// import { EyeIcon, EyeOffIcon } from "@heroicons/react/24/outline"; // npm install @heroicons/react
+import EyeIcon from "@heroicons/react/24/outline/EyeIcon";
+import EyeSlashIcon from "@heroicons/react/24/outline/EyeSlashIcon";
+
 
 const RegisterPage = () => {
     const router = useRouter();
@@ -13,6 +17,10 @@ const RegisterPage = () => {
     const [password, setPassword] = useState("");
     const [passwordConfirmation, setPasswordConfirmation] = useState("");
 
+    // Password visibility state
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
     // UI state
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
@@ -21,7 +29,6 @@ const RegisterPage = () => {
         e.preventDefault();
         setError(null);
 
-        // Simple client-side check (traditional UX)
         if (password !== passwordConfirmation) {
             setError("Passwords do not match");
             return;
@@ -56,7 +63,6 @@ const RegisterPage = () => {
                 return;
             }
 
-            // Success
             router.push("/signin");
 
         } catch (err) {
@@ -68,67 +74,99 @@ const RegisterPage = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-green-100">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-900 to-green-500">
             <form
                 onSubmit={handleSubmit}
-                className="bg-white p-6 rounded shadow w-80 space-y-4"
+                className="bg-gray-900 text-white p-8 rounded-xl shadow w-96 space-y-4"
             >
-                <h2 className="text-center text-xl font-bold text-green-700">
+                <h2 className="text-center text-2xl font-bold text-green-500">
                     Register
                 </h2>
 
                 {error && <p className="text-red-500 text-center">{error}</p>}
 
+                {/* Name */}
                 <input
                     type="text"
                     placeholder="Name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-green-400"
+                    className="w-full border p-2 rounded focus:border-green-400 focus:outline-none focus:ring focus:ring-green-400"
                     required
                 />
 
+                {/* Email */}
                 <input
                     type="email"
                     placeholder="Email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-green-400"
+                    className="w-full border p-2 rounded focus:border-green-400 focus:outline-none focus:ring focus:ring-green-400"
                     required
                 />
 
-                <input
-                    type="password"
-                    placeholder="Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-green-400"
-                    required
-                />
+                {/* Password with show/hide */}
+                <div className="relative w-full">
+                    <input
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="w-full border p-2 rounded text-white focus:border-green-400 focus:outline-none focus:ring focus:ring-green-400 pr-10"
+                        required
+                    />
+                    {password && (
+                        <button
+                            type="button"
+                            className="absolute right-2 top-1/2 transform -translate-y-1/2 text-white"
+                            onClick={() => setShowPassword(!showPassword)}
+                        >
+                            {showPassword ? (
+                                <EyeSlashIcon className="w-6 h-6 text-white" />
+                            ) : (
+                                <EyeIcon className="w-6 h-6 text-white" />
+                            )}
+                        </button>
+                    )}
+                </div>
 
-                <input
-                    type="password"
-                    placeholder="Confirm Password"
-                    value={passwordConfirmation}
-                    onChange={(e) => setPasswordConfirmation(e.target.value)}
-                    className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-green-400"
-                    required
-                />
+                {/* Confirm Password with show/hide */}
+                <div className="relative w-full">
+                    <input
+                        type={showConfirmPassword ? "text" : "password"}
+                        placeholder="Confirm Password"
+                        value={passwordConfirmation}
+                        onChange={(e) => setPasswordConfirmation(e.target.value)}
+                        className="w-full border p-2 rounded text-white focus:border-green-400 focus:outline-none focus:ring focus:ring-green-400 pr-10"
+                        required
+                    />
+                    {passwordConfirmation && (
+                        <button
+                            type="button"
+                            className="absolute right-2 top-1/2 transform -translate-y-1/2 text-white"
+                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        >
+                            {showConfirmPassword ? (
+                                <EyeSlashIcon className="w-6 h-6 text-white" />
+                            ) : (
+                                <EyeIcon className="w-6 h-6 text-white" />
+                            )}
+                        </button>
+                    )}
+                </div>
 
                 <button
                     type="submit"
                     disabled={loading}
-                    className={`w-full p-2 rounded text-white ${loading
-                            ? "bg-green-400 cursor-not-allowed"
-                            : "bg-green-600"
+                    className={`w-full p-2 rounded text-white ${loading ? "bg-green-400 cursor-not-allowed" : "bg-green-600"
                         }`}
                 >
                     {loading ? "Registering..." : "Register"}
                 </button>
 
-                <p className="text-center text-sm text-gray-500">
+                <p className="text-center text-sm text-gray-400">
                     Already have an account?{" "}
-                    <Link href="/signin" className="text-green-600 font-medium">
+                    <Link href="/signin" className="text-green-500 font-medium">
                         Sign In
                     </Link>
                 </p>
