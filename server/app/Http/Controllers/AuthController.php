@@ -4,36 +4,47 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Http\Requests\SignupRequest;
+use App\Http\Requests\LoginRequest;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
-    public function register(Request $request)
+    // Register
+    public function register(SignupRequest $request)
     {
-        $request->validate([
-            'name'=>'required',
-            'email'=>'required|email|unique:users,email',
-            'password'=>'required|min:6'
-        ]);
-
+        $data = $request->validated();
         $user = User::create([
-            'name'=>$request->name,
-            'email'=>$request->email,
-            'password'=>Hash::make($request->password)
+            'name'=>$data['name'],
+            'email'=>$data['email'],
+            'password'=> bcrypt($data['password']),
         ]);
-
-        return response()->json(['message'=>'User registered']);
+        $token = $user->createToken('main')->plainTextToken;
+        return response(compact('user', 'token'));
     }
 
-    public function login(Request $request)
+    // Login
+    public function login(LoginRequest $request)
     {
-        $credentials = $request->only('email','password');
-
-        if(!Auth::attempt($credentials)){
-            return response()->json(['message'=>'Invalid credentials'],401);
+        $credentials = $request->validated();
+        if (!Auth::attempt($credentials)) {
+            return response([
+                'message'=>'Invalid credentials'
+            ]);
         }
+        $user = Auth::user();
+        $token = $user->createToken('main')->plainTextToken;
+        return response(compact('user', 'token'));
+    }
 
-        return response()->json(['message'=>'Login successful']);
+    // Logout
+    public function logout(Request $request)
+    {
+        $user = $request->user();
+        $user->currentAccessToken()->delete();
+        return response([
+            'message'=>'Logged out successfully!'
+        ]);
     }
 }
