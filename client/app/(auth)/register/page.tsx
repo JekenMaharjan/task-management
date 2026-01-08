@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-// import { EyeIcon, EyeOffIcon } from "@heroicons/react/24/outline"; // npm install @heroicons/react
 import EyeIcon from "@heroicons/react/24/outline/EyeIcon";
 import EyeSlashIcon from "@heroicons/react/24/outline/EyeSlashIcon";
 

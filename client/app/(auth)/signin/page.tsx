@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import EyeIcon from "@heroicons/react/24/outline/EyeIcon";
+import EyeSlashIcon from "@heroicons/react/24/outline/EyeSlashIcon";
 
 const SigninPage = () => {
     const router = useRouter();
@@ -10,6 +12,8 @@ const SigninPage = () => {
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(true); // new: wait until token check is done
+
+    const [showPassword, setShowPassword] = useState(false);
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -69,14 +73,30 @@ const SigninPage = () => {
                     required
                 />
 
-                <input
-                    type="password"
-                    placeholder="Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full border p-2 rounded focus:border-blue-400 focus:outline-none focus:ring focus:ring-blue-400"
-                    required
-                />
+                {/* Password with show/hide */}
+                <div className="relative w-full">
+                    <input
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="w-full border p-2 rounded text-white focus:border-blue-400 focus:outline-none focus:ring focus:ring-blue-400 pr-10"
+                        required
+                    />
+                    {password && (
+                        <button
+                            type="button"
+                            className="absolute right-2 top-1/2 transform -translate-y-1/2 text-white"
+                            onClick={() => setShowPassword(!showPassword)}
+                        >
+                            {showPassword ? (
+                                <EyeSlashIcon className="w-6 h-6 text-white" />
+                            ) : (
+                                <EyeIcon className="w-6 h-6 text-white" />
+                            )}
+                        </button>
+                    )}
+                </div>
 
                 <button
                     type="submit"
