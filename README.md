@@ -6,9 +6,13 @@ A full‑stack task management application that helps users organize and manage 
 
 This project is a full‑stack web application built using **React (frontend)**, **Laravel (backend)**, and **MySQL** for database management. It allows users to create, update, and manage tasks — a foundational tool for productivity and project organization.
 
+---
+
 ## 🚀 Live Demo
 
 👉 https://task-management-henna-five.vercel.app  (if deployed)
+
+---
 
 ## 🛠️ Features
 
@@ -18,14 +22,18 @@ This project is a full‑stack web application built using **React (frontend)**,
 - RESTful APIs connecting frontend and backend
 - Clean and responsive frontend UI
 
+---
+
 ## 📦 Technologies Used
 
 - **React** – Frontend user interface  
 - **Laravel** – Backend API and business logic  
 - **MySQL** – Database storage  
-- **Vite** – Fast frontend tooling  
+- **Nextjs** – Fast frontend tooling  
 - **Tailwind CSS** – Styling and layout  
 - **JavaScript & PHP** – Core development languages
+
+---
 
 ## 💻 Project Structure
 
@@ -33,6 +41,7 @@ This project is a full‑stack web application built using **React (frontend)**,
 - /server – Laravel backend API
 - README.md – Documentation
 
+---
 
 ## 🔧 Setup Instructions
 
@@ -84,12 +93,16 @@ This project is a full‑stack web application built using **React (frontend)**,
      npm run dev
      ```
 
+---
+
 ## 📌 How to Use
 
 1. Register or log in to the app.
 2. Create new tasks with titles and optional details.
 3. Edit or delete tasks as needed.
 4. View your list of tasks in a responsive UI.
+
+---
 
 ## 🛠️ Future Enhancements
 
