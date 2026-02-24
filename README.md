@@ -10,7 +10,7 @@ This project is a full‑stack web application built using **React (frontend)**,
 
 ## 🚀 Live Demo
 
-👉 https://task-management-henna-five.vercel.app  (if deployed)
+👉 https://task-management-henna-five.vercel.app  (backend under maintenance)
 
 ---
 
